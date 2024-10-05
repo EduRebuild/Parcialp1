@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Compras</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #8967B3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-white">Lista de Compras</h1>
+        <form id="shoppingForm">
+            <div class="form-group">
+                <label for="itemName">Nombre del artículo</label>
+                <input type="text" class="form-control" id="itemName" placeholder="Nombre" required>
+            </div>
+            <div class="form-group">
+                <label for="itemQuantity">Cantidad</label>
+                <input type="number" class="form-control" id="itemQuantity" placeholder="Cantidad" required>
+            </div>
+            <div class="form-group">
+                <label for="itemDescription">Descripción</label>
+                <input type="text" class="form-control" id="itemDescription" placeholder="Descripción" required>
+            </div>
+            <div class="form-group">
+                <label for="itemImage">Imagen del producto</label>
+                <input type="file" class="form-control" id="itemImage" accept="image/*" required>
+            </div>
+            <div class="form-group">
+                <label>Vista previa:</label>
+                <img id="previewImage" src="" alt="Previsualización" width="100" style="display: none;">
+            </div>
+            <button type="submit" class="btn btn-primary">Agregar artículo</button>
+        </form>
+
+        <ul id="shoppingList" class="list-group mt-3"></ul>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="../Modelo/ListaDeCompras.js"></script>
+    <script src="../Controlador/ListaDeCompraCTRL.js"></script>
+    <script>
+        $(document).ready(function() {
+            const modelo = new ListaDeComprasModelo();
+            const vista = {
+                mostrarArticulos: function(articulos) {
+                    const lista = $('#shoppingList');
+                    lista.html('');
+                    articulos.forEach(articulo => {
+                        lista.append(`
+                            <li class="list-group-item">
+                                <h5>${articulo.nombre} (Cantidad: ${articulo.cantidad})</h5>
+                                <p>${articulo.descripcion}</p>
+                                <img src="${articulo.imagen}" alt="${articulo.nombre}" width="100">
+                                <button class="btn btn-danger btn-sm eliminarBtn" data-id="${articulo.id}">Eliminar</button>
+                                <button class="btn btn-info btn-sm editarBtn" data-id="${articulo.id}">Editar</button>
+                            </li>
+                        `);
+                    });
+                },
+                vincularAgregarArticulo: function(handler) {
+                    $('#itemImage').on('change', function(event) {
+                        const archivo = event.target.files[0];
+                        if (archivo) {
+                            const lector = new FileReader();
+                            lector.onload = function(e) {
+                                $('#previewImage').attr('src', e.target.result).show();
+                            }
+                            lector.readAsDataURL(archivo);
+                        }
+                    });
+
+                    $('#shoppingForm').on('submit', function(event) {
+                        event.preventDefault();
+                        const nombre = $('#itemName').val();
+                        const cantidad = $('#itemQuantity').val();
+                        const descripcion = $('#itemDescription').val();
+                        const imagen = $('#previewImage').attr('src');
+                        handler(nombre, cantidad, descripcion, imagen);
+                    });
+                },
+                vincularEliminarArticulo: function(handler) {
+                    $('#shoppingList').on('click', '.eliminarBtn', function() {
+                        const id = $(this).data('id');
+                        handler(id);
+                    });
+                },
+                vincularEditarArticulo: function(handler) {
+                }
+            };
+
+            const controlador = new ListaDeCompraCTRL(modelo, vista);
+        });
+    </script>
+</body>
+</html>
